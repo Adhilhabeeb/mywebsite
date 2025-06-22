@@ -160,7 +160,7 @@ if (intersects2.length > 0) {
   // Your plane is 7x7, centered at origin => map -3.5 to +3.5 => UV (0 to 1)
   const uv = new THREE.Vector2(
     (localPoint.x + 50) / 100,
-    (localPoint.z + 50) / 100
+    (localPoint.y + 50) / 100
   );
   
 
@@ -180,7 +180,7 @@ if (intersects2.length > 0) {
   // 5. Set the raycaster's origin and direction
   raycaster.set(origin, direction);
   const arrowHelper = new THREE.ArrowHelper(direction, origin, 2, 0xffff00);
-// scene.add(arrowHelper);
+scene.add(arrowHelper);
 
   // 6. Cast the ray and check for intersections with the plane
   const intersects = raycaster.intersectObject(plane);
@@ -191,22 +191,30 @@ if (intersects2.length > 0) {
   
     // Convert world hit point to plane local space
     const localPoint = plane.worldToLocal(hit.point.clone());
-  
-    // Convert to UV
-    // Your plane is 100x100, centered at origin => map -3.5 to +3.5 => UV (0 to 1)
     const uv = new THREE.Vector2(
       (localPoint.x + 50) / 100,
-      (localPoint.z + 50) / 100
+      (localPoint.y + 50) / 100
     );
-    
-  
     planeMaterial.uniforms.umouse.value.set(uv.x - 0.5, uv.y - 0.5, 0);
+    
   }
    else {
     console.log("No intersection with plane");
   }
-  cube.position.x+=Math.sin(elapsedTime*0.1)
-  cube2.position.x-=Math.sin(elapsedTime*0.1)
+  const time = clock.getElapsedTime(); // total time since start
+
+  const amplitude = 2; // how far the cube moves left-right
+  const speed = 1;     // how fast the motion is
+  
+  // Cube 1 - yellow circle
+  cube.position.x = Math.sin(time * speed) * amplitude;
+  cube.position.z = Math.cos(time * speed) * amplitude;
+  
+  // Cube 2 - red circle (opposite direction)
+  cube2.position.x = -Math.sin(time * speed) * amplitude;
+  cube2.position.z = -Math.cos(time * speed) * amplitude;
+  
+
   console.log(elapsedTime)
       cube.rotation.x += 0.01;
       cube.rotation.y += 0.01;
