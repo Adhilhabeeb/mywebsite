@@ -21,6 +21,7 @@ let managerref=useRef(null)
     // Scene
     const raycaster = new THREE.Raycaster();
     const scene = new THREE.Scene();
+    let raycaster2 = new THREE.Raycaster();
     sceneref.current=scene
     const loader = new THREE.TextureLoader();
     // loader.load("../../public/citrus_orchard_road_puresky_4k.exr" , 
@@ -105,7 +106,10 @@ let textu=new THREE.TextureLoader(manager).load('/vite.svg')
     const cube = new THREE.Mesh(geometry, material);
     cube.position.y = 1; // Raise the cube above the plane
     scene.add(cube);
-
+//
+let cube2=new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 'red' }));
+cube2.position.y = 1; // Raise the cube above the plane
+scene.add(cube2)
     // planew 
 
     const planeGeometry = new THREE.PlaneGeometry(100, 100);
@@ -115,12 +119,13 @@ let textu=new THREE.TextureLoader(manager).load('/vite.svg')
       fragmentShader: frag,
       side: THREE.DoubleSide,
       uniforms: {
-      
+      umouse2:{ value: new THREE.Vector3(0, 0, 0) },
         resolution: { value: new THREE.Vector4(0, 0, 0, 0) },
         umouse: { value: new THREE.Vector3(0, 0, 0) }
       },
     });
     planeMaterial.uniforms.umouse.value=new THREE.Vector3(0, 0, 0);
+    planeMaterial.uniforms.umouse2.value=new THREE.Vector3(0, 0, 0);
     const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 
     plane.rotation.x = Math.PI / 2; // Rotate the plane to be horizontal
@@ -133,6 +138,41 @@ let textu=new THREE.TextureLoader(manager).load('/vite.svg')
     const animate = () => {
       let elapsedTime = clock.getDelta()
       requestAnimationFrame(animate);
+
+///////
+const origin2 = cube2.position.clone();
+const direction2 = new THREE.Vector3(0, -1, 0); // Downward
+direction2.normalize();
+
+raycaster2.set(origin2, direction2);
+  const arrowHelper2 = new THREE.ArrowHelper(direction2, origin2, 2, "red");
+// scene.add(arrowHelper2);
+const intersects2 = raycaster2.intersectObject(plane);
+  
+if (intersects2.length > 0) {
+  const hit = intersects2[0];
+  console.log("Hit222222222 the plane at:", hit.point);
+
+  // Convert world hit point to plane local space
+  const localPoint = plane.worldToLocal(hit.point.clone());
+
+  // Convert to UV
+  // Your plane is 7x7, centered at origin => map -3.5 to +3.5 => UV (0 to 1)
+  const uv = new THREE.Vector2(
+    (localPoint.x + 50) / 100,
+    (localPoint.z + 50) / 100
+  );
+  
+
+  planeMaterial.uniforms.umouse2.value.set(uv.x - 0.5, uv.y - 0.5, 0);
+}
+ else {
+  console.log("No intersection with plane    intt22222");
+}
+
+
+
+      ///////////
       const origin = cube.position.clone();
       const direction = new THREE.Vector3(0, -1, 0); // Downward
       direction.normalize();
@@ -140,20 +180,20 @@ let textu=new THREE.TextureLoader(manager).load('/vite.svg')
   // 5. Set the raycaster's origin and direction
   raycaster.set(origin, direction);
   const arrowHelper = new THREE.ArrowHelper(direction, origin, 2, 0xffff00);
-scene.add(arrowHelper);
+// scene.add(arrowHelper);
 
   // 6. Cast the ray and check for intersections with the plane
   const intersects = raycaster.intersectObject(plane);
   
   if (intersects.length > 0) {
     const hit = intersects[0];
-    console.log("Hit the plane at:", hit.point);
+    // console.log("Hit the plane at:", hit.point);
   
     // Convert world hit point to plane local space
     const localPoint = plane.worldToLocal(hit.point.clone());
   
     // Convert to UV
-    // Your plane is 7x7, centered at origin => map -3.5 to +3.5 => UV (0 to 1)
+    // Your plane is 100x100, centered at origin => map -3.5 to +3.5 => UV (0 to 1)
     const uv = new THREE.Vector2(
       (localPoint.x + 50) / 100,
       (localPoint.z + 50) / 100
@@ -166,6 +206,7 @@ scene.add(arrowHelper);
     console.log("No intersection with plane");
   }
   cube.position.x+=Math.sin(elapsedTime*0.1)
+  cube2.position.x-=Math.sin(elapsedTime*0.1)
   console.log(elapsedTime)
       cube.rotation.x += 0.01;
       cube.rotation.y += 0.01;
